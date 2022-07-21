@@ -1,4 +1,5 @@
 import { WebR } from 'https://webr.gwstagg.co.uk/webr.mjs';
+import { Spinner } from 'https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.0/spin.min.js';
 
 const loadScript = (url) => new Promise((resolve, reject) => {
   const script = document.createElement('script');
@@ -39,6 +40,8 @@ class Runner {
     this.queue = Promise.all([this.webR.init(), this.#waitForPrompt()]).then(() => {
       this.#clearBuffers();
       console.log('Runner: webR initialised');
+      $('span.webr-loading').remove();
+      $('button.webr-run').removeAttr("disabled");
     });
   }
 
@@ -114,13 +117,20 @@ const runner = new Runner();
 await Promise.all([
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js'),
   loadCSS('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css'),
+  loadCSS('https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.0/spin.css'),
 ]);
 
 let editors = [];
 let envID = runner.newEnv();
 
 $('pre.r').each(function(idx) {
-    $(this).before('<button class="run-code">Run R Code</button>');
+    $(this).before(`
+    <button disabled="disabled" class="webr-run">Run R Code</button>
+    <span class="webr-loading">
+      <span>Loading webR...</span>
+      <div style='display: inline-block'><div class='webr-spinner'></div></div>
+    </span>
+    `);
     let code = $(this).find("code").first()
     let editor = CodeMirror((elt) => {
         $(elt).css('border', '1px solid #eee');
@@ -137,7 +147,18 @@ $('pre.r').each(function(idx) {
     editors[idx] = editor;
 });
 
-$('button.run-code').click(function(e){
+$('div.webr-spinner').each(function() {
+  new Spinner({
+    color:'#000',
+    lines: 12,
+    scale: 0.5,
+    top: '-10px',
+    left: '10px',
+    position: 'relative',
+  }).spin(this);
+});
+
+$('button.webr-run').click(function(e){
     $(this).attr("disabled","disabled");
     let id = $(this).next().data('webr-id');
     let code = editors[id].getValue();
