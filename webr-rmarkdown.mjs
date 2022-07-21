@@ -166,12 +166,17 @@ $('button.webr-run').click(function(e){
     runner.runCode(code, envID).then( (result) => {
         $(this).removeAttr("disabled");
         let oldOutput = $(this).next().next();
-        if (!result.canvas) {
-          oldOutput.text(`${([...result.stdout,...result.stderr]).join('\n')}`)
+        if (!result.canvas || result.stderr.length > 0) {
+          if (oldOutput.prop("tagName") === 'PRE') {
+            oldOutput.text(`${([...result.stdout,...result.stderr]).join('\n')}`);
+          } else {
+            oldOutput.after(`<pre>${([...result.stdout,...result.stderr]).join('\n')}</pre>`);
+            oldOutput.remove();
+          }
         } else {
           oldOutput.after(result.canvas).next().css('width', '75%');
           oldOutput.remove();
         }
-    }
+      }
     );
 });
