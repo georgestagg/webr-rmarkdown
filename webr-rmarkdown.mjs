@@ -116,6 +116,7 @@ class Runner {
 const runner = new Runner();
 await Promise.all([
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js'),
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/r/r.min.js'),
   loadCSS('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css'),
   loadCSS('https://cdnjs.cloudflare.com/ajax/libs/spin.js/4.1.0/spin.css'),
 ]);
