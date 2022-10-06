@@ -18,10 +18,9 @@ const loadCSS = (url) => new Promise((resolve, reject) => {
   document.head.appendChild(link);
 });
 
-await Promise.all([
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js'),
-  loadCSS('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css'),
-]);
+loadCSS('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css')
+await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js')
+await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/r/r.js')
 
 const webR = new WebR({
   REnv: {
@@ -60,7 +59,11 @@ $('button.run-code').click(function(e){
     let oldOutput = $(this).next().next();
     let canvas = undefined;
     try {
-      const result = await webR.evalRCode(code, env);
+      const result = await webR.evalRCode(
+        code,
+        env,
+        { withAutoprint: true, captureStreams: true, captureConditions: false }
+      );
       const msgs = await webR.flush();
       msgs.forEach(msg => {
         if (msg.type === 'canvasExec'){
@@ -73,7 +76,10 @@ $('button.run-code').click(function(e){
         }
       });
       if (!canvas) {
-        oldOutput.after(`<pre>${([...result.stdout]).join('\n')}</pre>`);
+        const out = result.output.filter(
+          evt => evt.type == 'stdout' || evt.type == 'stderr'
+        ).map((evt) => evt.data);
+        oldOutput.after(`<pre>${out.join('\n')}</pre>`);
         oldOutput.remove();
       } else {
         oldOutput.after(canvas).next().css('width', '50%');
